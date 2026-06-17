@@ -3,13 +3,15 @@
 /* ECharts 容器基础：100%宽度，自适应高度 */
 .echarts-container {
   width: 100% !important;
-  min-width: unset !important;
+  min-width: 280px !important; /* Mobile: ensure min width prevents 0px init */
   max-width: 100% !important;
   height: auto !important;
   min-height: 250px;
   aspect-ratio: auto !important;
   overflow: hidden;
-  display: block;
+  display: block !important; /* Force display to prevent layout issues */
+  visibility: visible !important;
+  position: relative;
   margin: 0.5em 0;
 }
 
@@ -61,4 +63,47 @@
 /* 编辑模式下的紧凑显示 */
 .markdown-source-view .echarts-container {
   margin: 0.3em 0;
+}
+
+/* ==============================================
+   移动端关键修复 (iOS / Android WebView)
+   ============================================== */
+
+/* iOS Safari: 强制布局，防止渲染延迟 */
+@supports (-webkit-touch-callout: none) {
+  .echarts-container {
+    transform: translateZ(0); /* 开启GPU加速 */
+    will-change: width, height; /* 提示浏览器即将变化 */
+  }
+
+  /* iOS 滚动时防止图表消失 */
+  .markdown-preview-view.is-mobile .echarts-container,
+  .markdown-source-view.is-mobile .echarts-container {
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+  }
+}
+
+/* 确保 ECharts 内部容器始终可见 */
+.echarts-container > :first-child,
+.echarts-container div[style*="position: relative"] {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: inherit !important;
+}
+
+/* Obsidian 移动端: 防止 Live Preview 模式下的容器塌陷 */
+.is-mobile .cm-embed-block:has(.echarts-container) {
+  min-height: 200px;
+  contain: layout style;
+}
+
+/* 错误提示样式 */
+.echarts-error {
+  color: var(--text-error, #ff4444);
+  padding: 10px;
+  border: 1px solid var(--background-modifier-error, #ff4444);
+  border-radius: 4px;
+  text-align: center;
+  font-size: 12px;
 }
